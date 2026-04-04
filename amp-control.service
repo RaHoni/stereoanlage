@@ -1,0 +1,16 @@
+[Unit]
+Description=Auto control amplifier when audio sinks are idle (with debounce)
+After=network.target sound.target pulseaudio.service pigpiod.service
+Requires=pulseaudio.service pigpiod.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/amp-control.sh
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

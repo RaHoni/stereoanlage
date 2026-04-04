@@ -1,0 +1,26 @@
+[Unit]
+Description=Wyoming Satellite
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/root/wyoming-satellite/script/run \
+    --name 'Stereoanlge' \
+    --uri 'tcp://0.0.0.0:10700' \
+    --mic-command 'parecord -d alsa_input.platform-soc_sound.stereo-fallback --property=media.role=phone --rate=16000 --channels=1 --format=s16le --raw --latency-msec 10' \
+    --snd-command 'paplay -d alsa_output.platform-fe00b840.mailbox.stereo-fallback --property=media.role=announce --rate=44100 --channels=1 --format=s16le --raw --latency-msec 10' \
+    --snd-command-rate 44100 \
+    --wake-uri 'tcp://127.0.0.1:10400' \
+    --wake-word-name 'hey_jarvis' \
+    --detection-command '/root/wyoming-enhancements/snapcast/scripts/awake.sh' \
+    --tts-stop-command '/root/wyoming-enhancements/snapcast/scripts/done.sh' \
+    --error-command '/root/wyoming-enhancements/snapcast/scripts/done.sh' \
+    --awake-wav sounds/awake.wav \
+    --done-wav sounds/done.wav
+WorkingDirectory=/root/wyoming-satellite
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=default.target

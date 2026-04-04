@@ -1,0 +1,16 @@
+[Unit]
+Description=Snapcast client Wohnzimmer
+Documentation=man:snapclient(1)
+Wants=avahi-daemon.service
+After=network-online.target time-sync.target sound.target avahi-daemon.service pulseaudio.service
+
+
+[Service]
+EnvironmentFile=-/etc/default/snapclient
+ExecStart=/usr/bin/snapclient --logsink=system $SNAPCLIENT_OPTS -s mailbox
+User=snapclient
+Group=snapclient
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

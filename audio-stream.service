@@ -1,0 +1,25 @@
+[Unit]
+Description=Stream PulseAudio monitor over netcat
+After=network.target pulseaudio.service
+Requires=pulseaudio.service
+
+[Service]
+Type=simple
+
+# Wait until PulseAudio is ready and the source exists
+ExecStartPre=/usr/bin/bash -c '\
+  until pactl list sources short | grep -q BluetoothSink.monitor; do \
+    echo "Waiting for PulseAudio source..."; \
+    sleep 2; \
+  done'
+
+ExecStart=/usr/bin/bash -c 'parec -d BluetoothSink.monitor | nc 192.168.1.202 3333'
+
+Restart=always
+RestartSec=2
+
+# Optional: avoid hanging if network disappears
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

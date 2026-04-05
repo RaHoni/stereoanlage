@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Configuration
-GPIO=17
+GPIO=14
 
 # PulseAudio sink names (from `pactl list sinks short`)
 SINK1="alsa_output.platform-fe00b840.mailbox.stereo-fallback"
 SINK2="alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo"
+ENABLE_SINK2=true
 
 AMP_STATE="off"
 
@@ -49,7 +50,12 @@ get_sink_state() {
 update_amp_state() {
     local state1 state2
     state1=$(get_sink_state "$SINK1")
-    state2=$(get_sink_state "$SINK2")
+
+    if [[ "$ENABLE_SINK2" == "true" ]]; then
+        state2=$(get_sink_state "$SINK2")
+    else
+        state2="$state1"
+    fi
 
     if [[ "$state1" == "RUNNING" || "$state2" == "RUNNING" || "$state1" == "IDLE" || "$state2" == "IDLE" ]]; then
         if [[ "$AMP_STATE" == "off" ]]; then
@@ -62,6 +68,7 @@ update_amp_state() {
     fi
 }
 
+update_amp_state
 # Monitor PulseAudio sink changes
 pactl subscribe | while read -r line; do
     if echo "$line" | grep -q "Event 'change' on sink"; then

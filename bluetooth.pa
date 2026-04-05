@@ -1,0 +1,5 @@
+load-module module-null-sink sink_name=BluetoothSink sink_properties=device.description=Bluetooth-Audio-Sink
+load-module module-bluetooth-policy
+load-module module-bluetooth-discover
+
+set-default-sink BluetoothSink

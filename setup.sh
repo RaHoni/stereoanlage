@@ -1,8 +1,8 @@
-snapclient_version="0.34.0"
+snapclient_version="0.35.0"
 
 apt update
 apt upgrade -y
-apt install pulseaudio pulseaudio-utils git wget pigpio -y
+apt install pulseaudio pulseaudio-utils pulseaudio-module-bluetooth git wget pigpio netcat-openbsd -y
 apt install --no-install-recommends libopenblas-dev -y
 
 cp config.txt /boot/firmware/config.txt
@@ -41,9 +41,15 @@ script/setup
 cp amp-control.sh /usr/local/bin/amp-control.sh
 chmod +x /usr/local/bin/amp-control.sh
 
-# Activate all services
-cp *.service /etc/systemd/system/
-systemctl daemon-reload
-systemctl enable --now *.service pigpiod.service
+# bluethooth speaker
+cp ./bluethooth_main.conf /etc/bluetooth/main.conf
+echo PRETTY_HOSTNAME=Stereoanlage Sesselzimmer > /etc/machine-info
+cp bluetooth.pa /etc/pulse/system.pa.d
 
-reboot
+# Activate all services
+#cp *.service /etc/systemd/system/
+#systemctl daemon-reload
+find . -name "*.service" -exec basename {} \; | xargs -I{} sudo systemctl enable --now {}
+systemctl enable --now pigpiod.service
+
+#reboot

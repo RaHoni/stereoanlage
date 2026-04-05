@@ -7,6 +7,9 @@
 dtparam=i2s=on
 #dtparam=spi=on
 
+# Disable Wifi
+dtoverlay=disable-wifi
+
 # Enable audio (loads snd_bcm2835)
 dtparam=audio=on
 dtoverlay=googlevoicehat-soundcard
@@ -16,10 +19,10 @@ dtoverlay=googlevoicehat-soundcard
 # /boot/firmware/overlays/README
 
 # Automatically load overlays for detected cameras
-camera_auto_detect=1
+#camera_auto_detect=1
 
 # Automatically load overlays for detected DSI displays
-display_auto_detect=1
+#display_auto_detect=1
 
 # Automatically load initramfs files, if found
 auto_initramfs=1

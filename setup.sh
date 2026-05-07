@@ -2,39 +2,17 @@ snapclient_version="0.35.0"
 
 apt update
 apt upgrade -y
-apt install pulseaudio pulseaudio-utils pulseaudio-module-bluetooth git wget pigpio netcat-openbsd -y
-apt install --no-install-recommends libopenblas-dev -y
+apt install git wget pigpio-tools netcat-openbsd libspa-0.2-bluetooth bluez-tools -y
+apt install --no-install-recommends libopenblas-dev python3-setuptools -y
 
-cp config.txt /boot/firmware/config.txt
+#cp config.txt /boot/firmware/config.txt
 
-# pulseaudio
-systemctl --global disable pulseaudio.service pulseaudio.socket
-echo "autospawn = no" >> /etc/pulse/client.conf
-sed -i '/^pulse-access:/ s/$/root,pi,snapclient/' /etc/group
-
-# wyoming-satellite
-( cd ~
-git clone https://github.com/rhasspy/wyoming-satellite.git
-cd wyoming-satellite
-script/setup
-)
-
-
-
-# snapclient 31
 (
-cd ~
-git clone https://github.com/FutureProofHomes/wyoming-enhancements.git
-)
-wget "https://github.com/badaix/snapcast/releases/download/v$snapclient_version/snapclient_$snapclient_version-1_armhf_trixie_with-pulse.deb"
-apt install ./snapclient_$snapclient_version-1_armhf_trixie_with-pulse.deb -y
-cp snapclient /etc/default/snapclient
-
-# openwakeword
-( cd ~
-git clone https://github.com/rhasspy/wyoming-openwakeword.git
-cd wyoming-openwakeword
-script/setup
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make
+sudo make install
 )
 
 # amp-control
@@ -42,14 +20,17 @@ cp amp-control.sh /usr/local/bin/amp-control.sh
 chmod +x /usr/local/bin/amp-control.sh
 
 # bluethooth speaker
-cp ./bluethooth_main.conf /etc/bluetooth/main.conf
+cp ./bluetooth_main.conf /etc/bluetooth/main.conf
 echo PRETTY_HOSTNAME=Stereoanlage Sesselzimmer > /etc/machine-info
-cp bluetooth.pa /etc/pulse/system.pa.d
+mkdir -p /wireplumber/wireplumber.conf.d
+cp ./bluetooth.conf /etc/wireplumber/wireplumber.conf.d/bluetooth.conf
+
 
 # Activate all services
 #cp *.service /etc/systemd/system/
 #systemctl daemon-reload
+sudo systemctl enable --now ./pigpiod.service ./bt-agent.service
+systemctl enable --now --user ./amp-control.service ./stream-bluetooth.service
 find . -name "*.service" -exec basename {} \; | xargs -I{} sudo systemctl enable --now {}
-systemctl enable --now pigpiod.service
 
 #reboot

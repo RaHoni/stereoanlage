@@ -1,16 +1,14 @@
 #!/bin/bash
 
-# Configuration
 GPIO=14
+ENABLE_SINK2=false
+DEBOUNCE_SECONDS=10
 
-# PulseAudio sink names (from `pactl list sinks short`)
-SINK1="alsa_output.platform-fe00b840.mailbox.stereo-fallback"
-SINK2="alsa_output.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.analog-stereo"
-ENABLE_SINK2=true
+SINK1_NAME="ReSpeaker Lite"
+SINK2_NAME="USB Audio Device"
 
 AMP_STATE="off"
 
-# Setup GPIO as output and turn off amp
 pigs m $GPIO w
 pigs w $GPIO 0
 
@@ -18,6 +16,7 @@ turn_on_amp() {
     pigs w $GPIO 1
     AMP_STATE="on"
     echo "[amp-control] Amp ON"
+
 }
 
 turn_off_amp() {
@@ -27,52 +26,49 @@ turn_off_amp() {
 }
 
 get_sink_state() {
-    local sink="$1"
-    local current_state=""
-    local current_sink=""
+    local name="$1"
 
-    while IFS= read -r line; do
-        # Trim leading whitespace
-        line="${line#"${line%%[![:space:]]*}"}"
-
-        if [[ "$line" =~ ^State:\ (.+)$ ]]; then
-            current_state="${BASH_REMATCH[1]}"
-        elif [[ "$line" =~ ^Name:\ (.+)$ ]]; then
-            current_sink="${BASH_REMATCH[1]}"
-            if [[ "$current_sink" == "$sink" ]]; then
-                echo "$current_state"
-                return 0
-            fi
-        fi
-    done < <(pactl list sinks)
+    pw-dump | jq -r --arg NAME "$name" '
+        .[] 
+        | select(.type == "PipeWire:Interface:Node")
+        | select(.info.props["media.class"] == "Audio/Sink")
+        | select(.info.props["alsa.card_name"] == $NAME)
+        | .info.state
+    ' | head -n1
 }
 
 update_amp_state() {
-    local state1 state2
-    state1=$(get_sink_state "$SINK1")
+    local s1 s2
+
+    s1=$(get_sink_state "$SINK1_NAME")
 
     if [[ "$ENABLE_SINK2" == "true" ]]; then
-        state2=$(get_sink_state "$SINK2")
+        s2=$(get_sink_state "$SINK2_NAME")
     else
-        state2="$state1"
+        s2="$s1"
     fi
 
-    if [[ "$state1" == "RUNNING" || "$state2" == "RUNNING" || "$state1" == "IDLE" || "$state2" == "IDLE" ]]; then
-        if [[ "$AMP_STATE" == "off" ]]; then
-            turn_on_amp
-        fi
-    elif [[ "$state1" == "SUSPENDED" && "$state2" == "SUSPENDED" ]]; then
-        if [[ "$AMP_STATE" == "on" ]]; then
-            turn_off_amp
-        fi
+    # Normalize empty → not running
+    [[ -z "$s1" ]] && s1="suspended"
+    [[ -z "$s2" ]] && s2="suspended"
+    echo S1: $s1 S2: $s2
+
+    if [[ "$s1" == "running" || "$s2" == "running" ]]; then
+	echo should turn on
+        [[ "$AMP_STATE" == "off" ]] && turn_on_amp
+        return
+    fi
+
+    if [[ "$AMP_STATE" == "on" ]]; then
+            if [[ "$s1" == "suspended" && "$s2" == "suspended" ]]; then
+                turn_off_amp
+            fi
     fi
 }
 
-update_amp_state
-# Monitor PulseAudio sink changes
-pactl subscribe | while read -r line; do
-    if echo "$line" | grep -q "Event 'change' on sink"; then
-        update_amp_state
-    fi
-done
+# ---- main loop ----
 
+while true; do
+    update_amp_state
+    sleep 2
+done

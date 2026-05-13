@@ -4,10 +4,12 @@ GPIO=14
 ENABLE_SINK2=false
 DEBOUNCE_SECONDS=10
 
+# Match via alsa.card_name (from pw-mon output)
 SINK1_NAME="ReSpeaker Lite"
 SINK2_NAME="USB Audio Device"
 
 AMP_STATE="off"
+debounce_pid=""
 
 pigs m $GPIO w
 pigs w $GPIO 0

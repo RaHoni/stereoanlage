@@ -8,16 +8,20 @@ apt install --no-install-recommends libopenblas-dev python3-setuptools -y
 #cp config.txt /boot/firmware/config.txt
 
 (
-wget https://github.com/joan2937/pigpio/archive/master.zip
-unzip master.zip
-cd pigpio-master
-make
-sudo make install
+    wget https://github.com/joan2937/pigpio/archive/master.zip
+    unzip master.zip
+    cd pigpio-master
+    make
+    sudo make install
+    systemctl enable --now ./pigpiod.service
 )
 
 # amp-control
-cp amp-control.sh /usr/local/bin/amp-control.sh
-chmod +x /usr/local/bin/amp-control.sh
+(
+    su pi
+    cp amp-control.sh /usr/local/bin/amp-control.sh
+    chmod +x /usr/local/bin/amp-control.sh
+)
 
 # bluethooth speaker
 cp ./bluetooth_main.conf /etc/bluetooth/main.conf

@@ -1,0 +1,9 @@
+[Unit]
+Description=Isolated PulseAudio Bluetooth
+
+[Service]
+ExecStart=/usr/bin/pulseaudio -nF /home/pi/.pulse-bt/default.pa --daemonize=no
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

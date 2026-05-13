@@ -1,0 +1,8 @@
+#!/usr/bin/pulseaudio -nF
+
+load-module module-native-protocol-unix socket=/tmp/pulse-bt.sock
+load-module module-null-sink sink_name=BluetoothSink sink_properties=device.description=Bluetooth-Audio-Sink
+load-module module-bluetooth-policy
+load-module module-bluetooth-discover
+
+set-default-sink BluetoothSink

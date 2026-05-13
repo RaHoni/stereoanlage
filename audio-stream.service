@@ -1,10 +1,11 @@
 [Unit]
 Description=Stream PulseAudio monitor over netcat
-After=network.target pulseaudio.service
-Requires=pulseaudio.service
+After=network.target pulseaudio-bt.service
+Requires=pulseaudio-bt.service
 
 [Service]
 Type=simple
+Environment="PULSE_SERVER=unix:/tmp/pulse-bt.sock"
 
 # Wait until PulseAudio is ready and the source exists
 ExecStartPre=/usr/bin/bash -c '\
@@ -22,4 +23,4 @@ RestartSec=2
 TimeoutStartSec=0
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

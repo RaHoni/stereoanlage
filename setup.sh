@@ -24,12 +24,14 @@ apt install --no-install-recommends libopenblas-dev python3-setuptools -y
 )
 
 # bluethooth speaker
-cp ./bluetooth_main.conf /etc/bluetooth/main.conf
-echo PRETTY_HOSTNAME=Stereoanlage Sesselzimmer > /etc/machine-info
-mkdir -p /wireplumber/wireplumber.conf.d
-cp ./bluetooth.conf /etc/wireplumber/wireplumber.conf.d/bluetooth.conf
-
-
+(
+    su pi
+    cp ./bluetooth_main.conf /etc/bluetooth/main.conf
+    echo PRETTY_HOSTNAME=Stereoanlage Sesselzimmer > /etc/machine-info
+    mkdir ~/.pulse-bt
+    cp bluetooth.pa ~/.pulse-bt/default.pa
+    systemctl enable --user ./pulseaudio-bt.service ./audio-stream.service
+)
 # Activate all services
 #cp *.service /etc/systemd/system/
 #systemctl daemon-reload
